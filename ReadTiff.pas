@@ -111,6 +111,7 @@ type
   end;
 
   TGeoTiffProperties = class
+  public
     sGTCitation     : string;
     sGeoCitation    : string;
     sPCSCitation    : string; // 3073
@@ -127,6 +128,7 @@ type
   end;
 
   TConvert = class
+  public
     isTiffLittle : boolean;
     isMachineLittle : boolean;
     isBig : boolean;
