@@ -11,13 +11,11 @@ object formTiffInfo: TformTiffInfo
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   Menu = mmTiffInfo
-  OldCreateOrder = True
   ShowHint = True
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnResize = FormResize
-  PixelsPerInch = 96
   TextHeight = 13
   object Spl_TiffFiles: TSplitter
     Left = 273
@@ -47,6 +45,8 @@ object formTiffInfo: TformTiffInfo
     ActivePage = TS_TiffIFD
     Align = alClient
     TabOrder = 0
+    ExplicitWidth = 786
+    ExplicitHeight = 615
     object TS_TiffIFD: TTabSheet
       Caption = 'IFD Details'
       object LV_TiffInfo: TListView
@@ -89,6 +89,8 @@ object formTiffInfo: TformTiffInfo
         ViewStyle = vsReport
         OnDblClick = LV_TiffInfoDblClick
         ExplicitLeft = -1
+        ExplicitWidth = 778
+        ExplicitHeight = 587
       end
     end
     object TS_TiffImage: TTabSheet
@@ -213,6 +215,9 @@ object formTiffInfo: TformTiffInfo
     PopupMenu = PM_TiffList
     TabOrder = 1
     OnClick = LB_TiffFilesClick
+    OnMouseDown = LB_TiffFilesMouseDown
+    ExplicitLeft = 1
+    ExplicitTop = 8
   end
   object mmTiffInfo: TMainMenu
     Images = ImageList1

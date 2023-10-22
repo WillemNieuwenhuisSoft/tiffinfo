@@ -66,6 +66,8 @@ type
     procedure Setreportfilename1Click(Sender: TObject);
     procedure Structure1Click(Sender: TObject);
     procedure LV_TiffInfoDblClick(Sender: TObject);
+    procedure LB_TiffFilesMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
   private
     { Private declarations }
     procedure ExtractInfo;
@@ -124,7 +126,7 @@ begin
     for i := i - 1 downto 0 do
       LB_TiffFiles.Items.Add(MakeListItem(StrPCopy(pc, OD_Tiff.Files[i])));
     LB_TiffFiles.ItemIndex := iLast;
-    LB_TiffFilesClick(Sender);
+    LB_TiffFilesClick(LB_TiffFiles);
 
     // Add the tree view
 //    iLast := TV_TiffFiles.Items.Count;
@@ -484,14 +486,16 @@ var
 begin
   iCount := DragQueryFile(Drop, $FFFFFFFF, acFileNames, 250);
   i := 0;
-  iLast := LB_TiffFiles.Items.Count;
+  iLast := LB_TiffFiles.Items.Count - 1;
   repeat
     DragQueryFile(Drop, i, acFileNames, 250);
-    sExt := ExtractFileExt(strpas(acFileNames));
+    sExt := uppercase(ExtractFileExt(strpas(acFileNames)));
     i := i + 1;
-    if uppercase(sExt) = uppercase('.tif') then begin
+    if (sExt = uppercase('.tif')) or
+       (sExt = uppercase('.tiff')) then begin
       fn := MakeListItem(acFileNames);
       LB_TiffFiles.Items.Add(fn);
+      inc(iLast);
 
 //      fn_node := TV_TiffFiles.Items.Add(nil, fn);
 //      ifd := TTiffIFDList.Create(acFileNames);
@@ -521,7 +525,8 @@ begin
   until i = iCount;
   DragFinish(Drop);
   LB_TiffFiles.ItemIndex := iLast;   // select the first of the new additions
-  LB_TiffFilesClick(Self);
+  if iLast >= 0 then
+    LB_TiffFilesClick(LB_TiffFiles);
 end;
 
 procedure TformTiffInfo.WMDropFiles(VAR Message: TWMDropFiles);
@@ -575,10 +580,27 @@ begin
 end;
 
 procedure TformTiffInfo.LB_TiffFilesClick(Sender: TObject);
+var
+    lb : TListBox;
+    obj : TObject;
+    name : string;
+    myint : integer;
 begin
-  with LB_TiffFiles do
-    ttInfo.SetTiffName(MakeFileFromItem(Items[ItemIndex]));
-  ExtractInfo;
+    lb := Sender as TListBox;
+    if lb.ItemIndex = -1 then
+        exit;
+
+    with LB_TiffFiles do
+        ttInfo.SetTiffName(MakeFileFromItem(Items[ItemIndex]));
+    ExtractInfo;
+end;
+
+procedure TformTiffInfo.LB_TiffFilesMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+    if TListbox(Sender).ItemAtPos(Point(X, Y), true) = -1 then
+        // 'whitespace' was clicked
+        LB_TiffFiles.ItemIndex := -1;
 end;
 
 procedure TformTiffInfo.PMI_ClearListClick(Sender: TObject);
