@@ -1220,11 +1220,39 @@ begin
     34735 : sTag := 'GeoKeyDirectoryTag';
     34736 : sTag := 'GeoDoubleParamsTag';
     34737 : sTag := 'GeoAsciiParamsTag';
+{ Adobe Tags }
+    37724 : sTag := 'ImageSourceData';
+    34377 : sTag := 'Photoshop';
 { GDAL tags }
     42112 : sTag := 'GDAL_Metadata';
     42113 : sTag := 'GDAL_NoData';
+{ JPEG specific tags }
+    347 : sTag := 'JPEGTables';
+{ Pagemaker tags }
+    343 : sTag := 'ClipPath';
+    344 : sTag := 'XClipPathUnits';
+    345 : sTag := 'YClipPathUnits';
+    346 : sTag := 'Indexed';
+    // OPI-Related Tags
+    351 : sTag := 'OPIProxy';
+    32781 : sTag := 'ImageID';
+    // ANSI IT8 TIFF/IT specification
+    34019 : sTag := 'IT8RasterPadding';
+    34022 : sTag := 'IT8ColorTable';
+{ XMP }
+    700 : sTag := 'XMP';
+{ IPTC }
+    33723 : sTag := 'IPTC';
+{ EXIF }
+    34665 : sTag := 'Exif IFD';
+    34675 : sTag := 'ICC Profile';
+{ Diverse }
+    34732  : sTag := 'ImageLayer';
   else
-    sTag := '<Unrecognized>';
+    if iTag >= 65000 then
+        sTag := 'Custom (private)'
+    else
+        sTag := '<Unrecognized>';
   end;
 end;
 
