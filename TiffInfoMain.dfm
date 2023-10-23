@@ -7,7 +7,7 @@ object formTiffInfo: TformTiffInfo
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -13
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   Menu = mmTiffInfo
@@ -16,11 +16,11 @@ object formTiffInfo: TformTiffInfo
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnResize = FormResize
-  TextHeight = 13
+  TextHeight = 16
   object Spl_TiffFiles: TSplitter
     Left = 273
-    Top = 13
-    Height = 616
+    Top = 16
+    Height = 613
     ExplicitLeft = 209
     ExplicitTop = 19
     ExplicitHeight = 535
@@ -29,31 +29,29 @@ object formTiffInfo: TformTiffInfo
     Left = 0
     Top = 0
     Width = 1066
-    Height = 13
+    Height = 16
     Align = alTop
     Caption = 'L_TiffName'
     Color = clRed
     ParentColor = False
     Transparent = False
-    ExplicitWidth = 55
+    ExplicitWidth = 69
   end
   object PC_TiffInfo: TPageControl
     Left = 276
-    Top = 13
+    Top = 16
     Width = 790
-    Height = 616
+    Height = 613
     ActivePage = TS_TiffIFD
     Align = alClient
     TabOrder = 0
-    ExplicitWidth = 786
-    ExplicitHeight = 615
     object TS_TiffIFD: TTabSheet
       Caption = 'IFD Details'
       object LV_TiffInfo: TListView
         Left = 0
         Top = 0
         Width = 782
-        Height = 588
+        Height = 582
         Align = alClient
         Columns = <
           item
@@ -99,11 +97,11 @@ object formTiffInfo: TformTiffInfo
         Left = 0
         Top = 0
         Width = 782
-        Height = 588
+        Height = 582
         Align = alClient
         DragMode = dmAutomatic
-        ItemHeight = 13
         TabOrder = 0
+        ExplicitHeight = 588
       end
     end
     object TS_Palette: TTabSheet
@@ -112,7 +110,7 @@ object formTiffInfo: TformTiffInfo
         Left = 0
         Top = 0
         Width = 782
-        Height = 588
+        Height = 582
         Align = alClient
         ColCount = 16
         FixedCols = 0
@@ -121,13 +119,14 @@ object formTiffInfo: TformTiffInfo
         ScrollBars = ssNone
         TabOrder = 0
         OnDrawCell = DG_PaletteDrawCell
+        ExplicitHeight = 588
       end
     end
     object TS_GeoTiff: TTabSheet
       Caption = 'GeoTiff Info'
       object Spl_GeoTiff: TSplitter
         Left = 0
-        Top = 437
+        Top = 431
         Width = 782
         Height = 3
         Cursor = crVSplit
@@ -137,18 +136,18 @@ object formTiffInfo: TformTiffInfo
       end
       object LB_GeoTiff: TListBox
         Left = 0
-        Top = 440
+        Top = 434
         Width = 782
         Height = 148
         Align = alBottom
-        ItemHeight = 13
         TabOrder = 0
+        ExplicitTop = 440
       end
       object LV_GeoTiff: TListView
         Left = 0
         Top = 0
         Width = 782
-        Height = 437
+        Height = 431
         Hint = 'Double click on an item for details'
         Align = alClient
         Columns = <
@@ -178,6 +177,7 @@ object formTiffInfo: TformTiffInfo
         TabOrder = 1
         ViewStyle = vsReport
         OnDblClick = LV_GeoTiffDblClick
+        ExplicitHeight = 437
       end
     end
     object TS_GeoTiffSummary: TTabSheet
@@ -186,7 +186,7 @@ object formTiffInfo: TformTiffInfo
         Left = 0
         Top = 0
         Width = 782
-        Height = 588
+        Height = 582
         Align = alClient
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
@@ -196,28 +196,28 @@ object formTiffInfo: TformTiffInfo
         ParentFont = False
         ScrollBars = ssVertical
         TabOrder = 0
+        ExplicitHeight = 588
       end
     end
   end
   object LB_TiffFiles: TListBox
     Left = 0
-    Top = 13
+    Top = 16
     Width = 273
-    Height = 616
+    Height = 613
     Align = alLeft
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
+    Font.Height = -13
     Font.Name = 'MS Sans Serif'
     Font.Style = []
-    ItemHeight = 13
     ParentFont = False
     PopupMenu = PM_TiffList
     TabOrder = 1
     OnClick = LB_TiffFilesClick
     OnMouseDown = LB_TiffFilesMouseDown
-    ExplicitLeft = 1
-    ExplicitTop = 8
+    ExplicitTop = 13
+    ExplicitHeight = 615
   end
   object mmTiffInfo: TMainMenu
     Images = ImageList1

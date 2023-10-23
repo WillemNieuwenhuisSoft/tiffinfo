@@ -5,37 +5,35 @@ object F_GeoTiffKeyDetail: TF_GeoTiffKeyDetail
   BorderStyle = bsDialog
   Caption = 'GeoTiff key detail'
   ClientHeight = 380
-  ClientWidth = 475
+  ClientWidth = 490
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -13
   Font.Name = 'MS Sans Serif'
   Font.Style = []
-  OldCreateOrder = True
   OnCreate = FormCreate
   DesignSize = (
-    475
+    490
     380)
-  PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 16
   object P_GeoKey: TPanel
     Left = 0
     Top = 0
-    Width = 475
+    Width = 490
     Height = 343
     Align = alTop
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 0
-    ExplicitWidth = 432
-    ExplicitHeight = 345
+    ExplicitWidth = 471
+    ExplicitHeight = 342
     DesignSize = (
-      475
+      490
       343)
     object L_GeoKeyTag: TLabel
       Left = 16
       Top = 24
-      Width = 56
+      Width = 98
       Height = 21
       AutoSize = False
       Caption = 'GeoKey tag'
@@ -44,7 +42,7 @@ object F_GeoTiffKeyDetail: TF_GeoTiffKeyDetail
     object L_GeoKeyName: TLabel
       Left = 16
       Top = 56
-      Width = 39
+      Width = 98
       Height = 21
       AutoSize = False
       Caption = 'Property'
@@ -53,7 +51,7 @@ object F_GeoTiffKeyDetail: TF_GeoTiffKeyDetail
     object L_GeoKeyType: TLabel
       Left = 16
       Top = 88
-      Width = 24
+      Width = 98
       Height = 21
       AutoSize = False
       Caption = 'Type'
@@ -62,7 +60,7 @@ object F_GeoTiffKeyDetail: TF_GeoTiffKeyDetail
     object L_GeoKeyCount: TLabel
       Left = 16
       Top = 120
-      Width = 78
+      Width = 98
       Height = 21
       AutoSize = False
       Caption = 'Count'
@@ -71,7 +69,7 @@ object F_GeoTiffKeyDetail: TF_GeoTiffKeyDetail
     object L_GeoKeyValue: TLabel
       Left = 16
       Top = 152
-      Width = 27
+      Width = 98
       Height = 21
       AutoSize = False
       Caption = 'Value'
@@ -80,7 +78,7 @@ object F_GeoTiffKeyDetail: TF_GeoTiffKeyDetail
     object L_GeoKeyDescription: TLabel
       Left = 16
       Top = 248
-      Width = 53
+      Width = 98
       Height = 21
       AutoSize = False
       Caption = 'Description'
@@ -88,56 +86,52 @@ object F_GeoTiffKeyDetail: TF_GeoTiffKeyDetail
     end
     object E_GeoKeyTag: TEdit
       Left = 120
-      Top = 24
-      Width = 157
-      Height = 21
+      Top = 23
+      Width = 168
+      Height = 24
       Anchors = [akLeft, akTop, akRight]
       Color = clInfoBk
       ReadOnly = True
       TabOrder = 0
       Text = 'E_GeoKeyTag'
-      ExplicitWidth = 121
     end
     object E_GeoKeyProperty: TEdit
       Left = 120
-      Top = 56
-      Width = 229
-      Height = 21
+      Top = 55
+      Width = 240
+      Height = 24
       Anchors = [akLeft, akTop, akRight]
       Color = clInfoBk
       ReadOnly = True
       TabOrder = 1
       Text = 'E_GeoKeyProperty'
-      ExplicitWidth = 193
     end
     object E_GeoKeyType: TEdit
       Left = 120
-      Top = 88
-      Width = 133
-      Height = 21
+      Top = 87
+      Width = 144
+      Height = 24
       Anchors = [akLeft, akTop, akRight]
       Color = clInfoBk
       ReadOnly = True
       TabOrder = 2
       Text = 'E_GeoKeyType'
-      ExplicitWidth = 97
     end
     object E_GeoKeyCount: TEdit
       Left = 120
-      Top = 120
-      Width = 133
-      Height = 21
+      Top = 119
+      Width = 144
+      Height = 24
       Anchors = [akLeft, akTop, akRight]
       Color = clInfoBk
       ReadOnly = True
       TabOrder = 3
       Text = 'E_GeoKeyCount'
-      ExplicitWidth = 97
     end
     object M_GeoKeyValues: TMemo
       Left = 120
-      Top = 152
-      Width = 341
+      Top = 151
+      Width = 352
       Height = 89
       Anchors = [akLeft, akTop, akRight]
       Color = clInfoBk
@@ -146,12 +140,11 @@ object F_GeoTiffKeyDetail: TF_GeoTiffKeyDetail
       ReadOnly = True
       TabOrder = 4
       WordWrap = False
-      ExplicitWidth = 305
     end
     object M_GeoKeyDescription: TMemo
       Left = 120
-      Top = 248
-      Width = 341
+      Top = 247
+      Width = 352
       Height = 89
       Anchors = [akLeft, akTop, akRight]
       Color = clInfoBk
@@ -159,11 +152,10 @@ object F_GeoTiffKeyDetail: TF_GeoTiffKeyDetail
         'M_GeoKeyDescription')
       ReadOnly = True
       TabOrder = 5
-      ExplicitWidth = 305
     end
   end
   object BB_Close: TBitBtn
-    Left = 379
+    Left = 397
     Top = 349
     Width = 75
     Height = 25
@@ -172,7 +164,5 @@ object F_GeoTiffKeyDetail: TF_GeoTiffKeyDetail
     NumGlyphs = 2
     Spacing = -1
     TabOrder = 1
-    ExplicitLeft = 336
-    ExplicitTop = 352
   end
 end

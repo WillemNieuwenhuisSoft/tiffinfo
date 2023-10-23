@@ -8,13 +8,12 @@ object F_Options: TF_Options
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -13
   Font.Name = 'MS Sans Serif'
   Font.Style = []
-  OldCreateOrder = False
+  Position = poMainFormCenter
   OnActivate = FormActivate
-  PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 16
   object P_Options: TPanel
     Left = 0
     Top = 0
@@ -22,18 +21,19 @@ object F_Options: TF_Options
     Height = 65
     Align = alTop
     TabOrder = 0
+    ExplicitWidth = 394
     object L_ReportFile: TLabel
       Left = 8
       Top = 8
-      Width = 48
-      Height = 13
+      Width = 63
+      Height = 16
       Caption = 'ReportFile'
     end
     object E_Reportfile: TEdit
       Left = 22
       Top = 30
       Width = 305
-      Height = 21
+      Height = 24
       TabOrder = 0
       Text = 'E_Reportfile'
     end
@@ -58,17 +58,19 @@ object F_Options: TF_Options
     Top = 72
     Width = 75
     Height = 25
-    TabOrder = 1
     Kind = bkCancel
+    NumGlyphs = 2
+    TabOrder = 1
   end
   object BB_OK: TBitBtn
     Left = 200
     Top = 72
     Width = 75
     Height = 25
+    Kind = bkOK
+    NumGlyphs = 2
     TabOrder = 2
     OnClick = BB_OKClick
-    Kind = bkOK
   end
   object OD_Browse: TOpenDialog
     Left = 136

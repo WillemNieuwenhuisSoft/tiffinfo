@@ -7,12 +7,10 @@ object F_Detail: TF_Detail
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'Tahoma'
+  Font.Height = -13
+  Font.Name = 'MS Sans Serif'
   Font.Style = []
-  OldCreateOrder = False
-  PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 16
   object P_Detail: TPanel
     Left = 0
     Top = 41
@@ -20,6 +18,8 @@ object F_Detail: TF_Detail
     Height = 542
     Align = alClient
     TabOrder = 0
+    ExplicitWidth = 885
+    ExplicitHeight = 541
     object M_Detail: TMemo
       Left = 1
       Top = 1
@@ -30,6 +30,8 @@ object F_Detail: TF_Detail
         '')
       ScrollBars = ssVertical
       TabOrder = 0
+      ExplicitWidth = 883
+      ExplicitHeight = 539
     end
   end
   object P_DetailTag: TPanel
@@ -39,6 +41,7 @@ object F_Detail: TF_Detail
     Height = 41
     Align = alTop
     TabOrder = 2
+    ExplicitWidth = 885
     DesignSize = (
       889
       41)
@@ -54,8 +57,8 @@ object F_Detail: TF_Detail
     object E_DetailTag: TEdit
       Left = 70
       Top = 8
-      Width = 199
-      Height = 21
+      Width = 195
+      Height = 24
       Anchors = [akLeft, akTop, akRight]
       Color = clInfoBk
       ReadOnly = True
@@ -72,11 +75,13 @@ object F_Detail: TF_Detail
     Caption = 'P_Button'
     ShowCaption = False
     TabOrder = 1
+    ExplicitTop = 582
+    ExplicitWidth = 885
     DesignSize = (
       889
       41)
     object BB_DetailClose: TBitBtn
-      Left = 785
+      Left = 781
       Top = 9
       Width = 75
       Height = 25
@@ -85,6 +90,7 @@ object F_Detail: TF_Detail
       NumGlyphs = 2
       Spacing = -1
       TabOrder = 0
+      ExplicitLeft = 777
     end
   end
 end
