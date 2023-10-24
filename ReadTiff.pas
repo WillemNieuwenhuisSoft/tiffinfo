@@ -139,9 +139,9 @@ type
     property isMachineLittleEndian : boolean read isMachineLittle;
     property isBigTiff : boolean read isBig write isBig;
 
-    function wSwap(w : integer) : integer;
-    function iSwap(i : longint) : longint;
-    function ibigSwap(big : int64) : int64;
+    function wSwap(w : word) : word;
+    function iSwap(i : longword) : longword;
+    function ibigSwap(big : uint64) : uint64;
     function rSwap(r : double)  : double;
     function truncTo(val : int64; iType : int64; iCount : int64) : int64;
 
@@ -190,7 +190,7 @@ type
     function sDescript(iTag, iVal : integer) : string;
     property fMultiImage : boolean read fMulti;
   private
-    function GetIFD(var fileTiff : file; ifd_offset : int64) : int64;
+    function GetIFD(var fileTiff : file; ifd_offset : uint64) : uint64;
     procedure SetProperty(pifd : PIFDEntry; var fileTiff : File);
     procedure LoadPalette(pifd : PIFDEntry; var fileTiff : File);
     procedure FindGeoEntry(iGeoKey : word; var pifd : PIFDEntry);
@@ -203,7 +203,7 @@ type
   TTiffHeader = packed record
     iEndian    : word;
     iDot       : word;      // 42
-    iPointer   : longint;   // point to first IFD
+    iPointer   : longword;   // point to first IFD
   end;
 
   TTiffIFDList = class
@@ -244,7 +244,7 @@ type
     iDot       : word;      // 43
     iOffsetSize : word;     // always 8
     iZero       : word;     // must be zero!
-    iPointer   : int64;     // point to first IFD (actually unsigned so can only use 63 bits)
+    iPointer   : uint64;     // point to first IFD (actually unsigned so can only use 63 bits)
   end;
 
   PDynIntArray = ^TDynIntArray;
@@ -306,7 +306,7 @@ begin
   result := tmp;
 end;
 
-function TConvert.wSwap(w : integer) : integer;
+function TConvert.wSwap(w : word) : word;
 begin
   if isTiffLittle then
     result := w
@@ -314,7 +314,7 @@ begin
     result := ((w shl 8) and $ff00) or ((w shr 8) and $ff);
 end;
 
-function TConvert.iSwap(i : longint) : longint;
+function TConvert.iSwap(i : longword) : longword;
 begin
   if isTiffLittle then
     result := i
@@ -339,7 +339,7 @@ begin
   result := r;
 end;
 
-function TConvert.ibigSwap(big: int64): int64;
+function TConvert.ibigSwap(big: uint64): uint64;
 var ab : array[0..7] of byte absolute big;
     i : integer;
     b : byte;
@@ -812,7 +812,7 @@ begin
 end;
 
 function TTiffInfo.ReadTiff : boolean;
-var iIFDPointer : int64;
+var iIFDPointer : uint64;
     fileTiff    : file;
     header      : TTiffHeader;
     bighead     : TBigTiffHeader;
@@ -857,8 +857,8 @@ begin
   end;
 end;
 
-function TTiffInfo.GetIFD(var fileTiff : file; ifd_offset : int64) : int64;
-var nextIFD     : int64;
+function TTiffInfo.GetIFD(var fileTiff : file; ifd_offset : uint64) : uint64;
+var nextIFD     : uint64;
     pifd        : PIFDEntry;
     ifdSmall    : TSmallIFDEntry;
     i           : integer;
