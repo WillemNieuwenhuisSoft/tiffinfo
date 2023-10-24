@@ -154,7 +154,7 @@ type
     lifd       : TList;       // list of Tiff keys (IFD)
     gifd       : TList;       // list of GeoTiff keys
     iNrGeoEntries,
-    iNrEntries : int64;
+    iNrEntries : uint64;
     fLittle    : boolean;
     fMulti     : boolean;
     tip        : TImageProperties;
@@ -190,13 +190,13 @@ type
     function sDescript(iTag, iVal : integer) : string;
     property fMultiImage : boolean read fMulti;
   private
-    function GetIFD(var fileTiff : file; ifd_offset : uint64) : uint64;
-    procedure SetProperty(pifd : PIFDEntry; var fileTiff : File);
-    procedure LoadPalette(pifd : PIFDEntry; var fileTiff : File);
+    function GetIFD(var fileTiff : TFileStream; ifd_offset : uint64) : uint64;
+    procedure SetProperty(pifd : PIFDEntry; var fileTiff : TFileStream);
+    procedure LoadPalette(pifd : PIFDEntry; var fileTiff : TFileStream);
     procedure FindGeoEntry(iGeoKey : word; var pifd : PIFDEntry);
     procedure FindGeoKey(iGeoKey : word; var pgk : PGeoKey);
-    procedure SetGeoProperty(pgk : PGeoKey; var fileTiff : File);
-    procedure ReadGeoTiffDirectory(var fileTiff : File);
+    procedure SetGeoProperty(pgk : PGeoKey; var fileTiff : TFileStream);
+    procedure ReadGeoTiffDirectory(var fileTiff : TFileStream);
     procedure Clean(l : TList);
   end;
 
@@ -607,7 +607,7 @@ begin
     pgk := nil;
 end;
 
-procedure TTiffInfo.ReadGeoTiffDirectory(var fileTiff : File);
+procedure TTiffInfo.ReadGeoTiffDirectory(var fileTiff : TFileStream);
 var i, iGeoSize : integer;
     pifd : PIFDEntry;
     iOldPos : longint;
@@ -616,8 +616,8 @@ begin
   FindGeoEntry(34735, pifd);     // GeoKeyDirectoryTag
   if pifd = nil then exit;
   iGeoSize := pifd^.iCount;
-  Seek(fileTiff, pifd^.iValue);
-  BlockRead(fileTiff, ghRevis, SizeOf(TGeoHeader));
+  fileTiff.Seek(pifd^.iValue, soFromBeginning);
+  fileTiff.ReadBuffer(ghRevis, SizeOf(TGeoHeader));
   with ghRevis do begin
     iVersion := convert.wSwap(iVersion);
     iRevision := convert.wSwap(iRevision);
@@ -627,7 +627,7 @@ begin
   iNrGeoEntries := ghRevis.iNrGeoKeys;
   for i := 0 to iNrGeoEntries - 1 do begin
     new(pgk);
-    BlockRead(fileTiff, pgk^, SizeOf(TGeoKey));
+    fileTiff.ReadBuffer(pgk^, SizeOf(TGeoKey));
     with pgk^ do begin
       iKeyID := convert.wSwap(iKeyID);
       iLoc   := convert.wSwap(iLoc);
@@ -639,8 +639,8 @@ begin
   end;
 end;
 
-procedure TTiffInfo.SetGeoProperty(pgk : PGeoKey; var fileTiff : File);
-var iOldPos : longint;
+procedure TTiffInfo.SetGeoProperty(pgk : PGeoKey; var fileTiff : TFileStream);
+var iOldPos : uint64;
     i       : integer;
     pifd    : PIFDEntry;
     pc      : PAnsiChar;
@@ -649,16 +649,16 @@ var iOldPos : longint;
 begin
   max_size := 4;
   if tip.fIsBigTiff then max_size := 8;
-  iOldPos := FilePos(fileTiff);
+  iOldPos := fileTiff.Position;
   with pgk^ do begin
     case iKeyID of
       1024 : if iLoc = 0 then
                tgp.iGeoModel := iValue;
       1026 : if iLoc <> 0 then begin
                FindGeoEntry(iLoc, pifd);
-               Seek(fileTiff, pifd^.iValue + iValue);
+               fileTiff.Seek(pifd^.iValue + iValue, soFromBeginning);
                GetMem(pc, iCount);
-               BlockRead(fileTiff, pc^, iCount);
+               fileTiff.ReadBuffer(pc^, iCount);
                pc[iCount - 1] := #0;
                tgp.sGTCitation := StrPas(pc);
                FreeMem(pc);
@@ -667,9 +667,9 @@ begin
                FindGeoEntry(iLoc, pifd);
                if pifd <> nil then begin
                  if pifd^.iCount > max_size then begin
-                   Seek(fileTiff, pifd^.iValue + iValue);
+                   fileTiff.Seek(pifd^.iValue + iValue, soFromBeginning);
                    GetMem(pc, iCount);
-                   BlockRead(fileTiff, pc^, iCount);
+                   fileTiff.ReadBuffer(pc^, iCount);
                    pc[iCount - 1] := #0;
                    tgp.sGeoCitation := StrPas(pc);
                    FreeMem(pc);
@@ -684,16 +684,16 @@ begin
              end;
       2051 : if iLoc <> 0 then begin
                FindGeoEntry(iLoc, pifd);
-               Seek(fileTiff, pifd^.iValue + iValue);
-               BlockRead(fileTiff, tgp.rLinUnitSize, SizeOf(double));
+               fileTiff.Seek(pifd^.iValue + iValue, soFromBeginning);
+               fileTiff.ReadBuffer(tgp.rLinUnitSize, SizeOf(double));
                tgp.rLinUnitSize := convert.rSwap(tgp.rLinUnitSize);
              end;
       3073 : if iLoc <> 0 then begin
                FindGeoEntry(iLoc, pifd);
                if pifd <> nil then begin
-                 Seek(fileTiff, pifd^.iValue + iValue);
+                 fileTiff.Seek(pifd^.iValue + iValue, soFromBeginning);
                  GetMem(pc, iCount);
-                 BlockRead(fileTiff, pc^, iCount);
+                 fileTiff.ReadBuffer(pc^, iCount);
                  pc[iCount - 1] := #0;
                  tgp.sPCSCitation := StrPas(pc);
                  FreeMem(pc);
@@ -701,7 +701,7 @@ begin
              end;
     end;
   end;
-  Seek(fileTiff, iOldPos);
+  fileTiff.Seek(iOldPos, soFromBeginning);
 end;
 
 function TTiffInfo.iNrGeoKeys : integer;
@@ -813,7 +813,7 @@ end;
 
 function TTiffInfo.ReadTiff : boolean;
 var iIFDPointer : uint64;
-    fileTiff    : file;
+    fileTiff    : TFileStream;
     header      : TTiffHeader;
     bighead     : TBigTiffHeader;
     pifd        : PIFDEntry;
@@ -821,10 +821,8 @@ var iIFDPointer : uint64;
     i           : integer;
 begin
   Result := true;
-  AssignFile(fileTiff, sFile);
-  FileMode := 0;
-  Reset(fileTiff, 1);
-  BlockRead(fileTiff, header, sizeof(header));
+  fileTiff := TFileStream.Create(sFile, fmOpenRead or fmShareDenyWrite);
+  fileTiff.ReadBuffer(header, sizeof(header));
   convert.isLittleEndian := header.iEndian = $4949;
   flittle := convert.isLittleEndian;
   tip.Clear;
@@ -834,8 +832,8 @@ begin
     tip.fIsBigTiff := convert.IsBigTiff;
     if convert.IsBigTiff then begin
         // bigtiff; reread the header
-        Reset(fileTiff, 1);
-        BlockRead(fileTiff, bighead, sizeof(bighead));
+        fileTiff.Seek(0, soFromBeginning);
+        fileTiff.ReadBuffer(bighead, sizeof(bighead));
         if (convert.wSwap(bighead.iOffsetSize) <> 8) or
            (convert.wSwap(bighead.iZero) <> 0) then begin
            Result := false;
@@ -853,11 +851,11 @@ begin
     iIFDPointer := GetIFD(fileTiff, iIFDPointer);
     fMulti := iIFDPointer <> 0;
   finally
-    CloseFile(fileTiff);
+    fileTiff.Free;
   end;
 end;
 
-function TTiffInfo.GetIFD(var fileTiff : file; ifd_offset : uint64) : uint64;
+function TTiffInfo.GetIFD(var fileTiff : TFileStream; ifd_offset : uint64) : uint64;
 var nextIFD     : uint64;
     pifd        : PIFDEntry;
     ifdSmall    : TSmallIFDEntry;
@@ -865,12 +863,12 @@ var nextIFD     : uint64;
 begin
   Result := 0;
   if tip.fIsBigTiff then begin
-    Seek(fileTiff, ifd_offset);
-    BlockRead(fileTiff, iNrEntries, sizeof(int64));
+    fileTiff.Seek(ifd_offset, soFromBeginning);
+    fileTiff.ReadBuffer(iNrEntries, sizeof(uint64));
     iNrEntries := convert.ibigSwap(iNrEntries);
     for i := 1 to iNrEntries do begin
       new(pifd);
-      BlockRead(fileTiff, pifd^, sizeof(TIFDEntry));
+      fileTiff.ReadBuffer(pifd^, sizeof(TIFDEntry));
       if pifd^.iTag = 0 then begin
         iNrEntries := i - 1;
         exit;
@@ -885,15 +883,15 @@ begin
       lifd.Add(pifd);
       SetProperty(pifd, fileTiff);
     end;
-    BlockRead(fileTiff, nextIFD, sizeof(int64));
+    fileTiff.ReadBuffer(nextIFD, sizeof(int64));
   end
   else begin
     // regular TIFF
-    Seek(fileTiff, ifd_offset);
-    BlockRead(fileTiff, iNrEntries, sizeof(word));
+    fileTiff.Seek(ifd_offset, soFromBeginning);
+    fileTiff.ReadBuffer(iNrEntries, sizeof(word));
     iNrEntries := convert.wSwap(iNrEntries);
     for i := 1 to iNrEntries do begin
-      BlockRead(fileTiff, ifdSmall, sizeof(TSmallIFDEntry));
+      fileTiff.ReadBuffer(ifdSmall, sizeof(TSmallIFDEntry));
       if ifdSmall.iTag = 0 then begin
         iNrEntries := i - 1;
         exit;
@@ -912,14 +910,14 @@ begin
       SetProperty(pifd, fileTiff);
     end;
     nextIFD := 0; // clear needed; next we are only filling it halfway
-    BlockRead(fileTiff, nextIFD, sizeof(longint));
+    fileTiff.ReadBuffer(nextIFD, sizeof(longint));
   end;
   if tip.fGeoTiff then
     ReadGeoTiffDirectory(fileTiff);
   result := nextIFD;
 end;
 
-procedure TTiffInfo.LoadPalette(pifd : PIFDEntry; var fileTiff : File);
+procedure TTiffInfo.LoadPalette(pifd : PIFDEntry; var fileTiff : TFileStream);
 var i, iToRead, iRead : integer;
     buf : PDynIntArray;
     r, g, b : word;
@@ -927,7 +925,7 @@ begin
   iToRead := pifd^.iCount * convert.iSizeOfType(pifd^.iType);
   try
     GetMem(buf, iToRead);
-    BlockRead(fileTiff, buf^, iToRead, iRead);
+    fileTiff.ReadBuffer(buf^, iToRead);
     with tip do begin
       for i := 0 to (iNrColors - 1) do begin
         r := convert.wSwap(Buf^[i]) div 256;
@@ -941,22 +939,22 @@ begin
   end;
 end;
 
-procedure TTiffInfo.SetProperty(pifd : PIFDEntry; var fileTiff : File);
-var iOldPos : longint;
+procedure TTiffInfo.SetProperty(pifd : PIFDEntry; var fileTiff : TFileStream);
+var iOldPos : uint64;
     i, iPos, iPlaneColors, iRead : integer;
     s : string;
     pc, pcLoop, pcLoop2 : PAnsiChar;
-    tostr : int64;
+    tostr : uint64;
     max_size : integer;
 
-  function iReadRational(iPos : longint) : longint;   // return truncated value
-  var iCurPos, iNom, iDenom : longint;
+  function iReadRational(iPos : uint64) : uint64;   // return truncated value
+  var iCurPos, iNom, iDenom : uint64;
   begin
-    iCurPos := FilePos(fileTiff);
-    Seek(fileTiff, iPos);
-    BlockRead(fileTiff, iNom, SizeOf(longint));
-    BlockRead(fileTiff, iDeNom, SizeOf(longint));
-    Seek(fileTiff, iCurPos);
+    iCurPos := fileTiff.Position;
+    fileTiff.Seek(iPos, soFromBeginning);
+    fileTiff.ReadBuffer(iNom, SizeOf(longint));
+    fileTiff.ReadBuffer(iDeNom, SizeOf(longint));
+    fileTiff.Seek(iCurPos, soFromBeginning);
     if iDenom <> 0 then
       Result := iNom div iDenom
     else
@@ -965,20 +963,20 @@ var iOldPos : longint;
   function rReadDouble : double;
   var r : double;
   begin
-    BlockRead(fileTiff, r, sizeof(double));
+    fileTiff.ReadBuffer(r, sizeof(double));
     Result := convert.rSwap(r);
   end;
-  function getString(pifd : PIFDEntry; offset : int64) : string;
+  function getString(pifd : PIFDEntry; offset : uint64) : string;
   begin
     if pifd^.iCount > max_size then begin
-      iOldPos := FilePos(fileTiff);
-      Seek(fileTiff, pifd^.iValue);
+      iOldPos := fileTiff.Position;
+      fileTiff.Seek(pifd^.iValue, soFromBeginning);
       GetMem(pc, pifd^.iCount);
-      BlockRead(fileTiff, pc^, pifd^.iCount);
+      fileTiff.ReadBuffer(pc^, pifd^.iCount);
       pc[pifd^.iCount - 1] := #0;
       Result := StrPas(pc);
       FreeMem(pc);
-      Seek(fileTiff, iOldPos);
+      fileTiff.Seek(iOldPos, soFromBeginning);
     end else begin
       tostr := pifd^.iValue;
       pc := addr(tostr);
@@ -994,31 +992,31 @@ begin
     256 : tip.iWidth := pifd^.iValue;
     257 : tip.iHeight := pifd^.iValue;
     258 : if pifd^.iCount > 1 then begin
-            iOldPos := FilePos(fileTiff);
-            Seek(fileTiff, pifd^.iValue);
+            iOldPos := fileTiff.Position;
+            fileTiff.Seek(pifd^.iValue, soFromBeginning);
             tip.iNrColors := 1;
             iPlaneColors := 0;
             tip.iNrBits := 0;
             for i := 1 to pifd^.iCount do begin
-              BlockRead(fileTiff, iPlaneColors, convert.iSizeOfType(pifd^.iType), iRead);
+              fileTiff.ReadBuffer(iPlaneColors, convert.iSizeOfType(pifd^.iType));
               iPlaneColors := convert.wSwap(iPlaneColors);
               tip.iNrBits := tip.iNrBits + iPlaneColors;
               tip.iNrColors := tip.iNrColors * (1 shl iPlaneColors);
             end;
-            Seek(fileTiff, iOldPos);
+            fileTiff.Seek(iOldPos, soFromBeginning);
           end
           else
             tip.iNrColors := 1 shl pifd^.iValue;
     259 : tip.iComp := pifd^.iValue;
     262 : tip.iPhoto := pifd^.iValue;
     270 : if pifd^.iCount > 0 then begin
-            iOldPos := FilePos(fileTiff);
-            Seek(fileTiff, pifd^.iValue);
+            iOldPos := fileTiff.Position;
+            fileTiff.Seek(pifd^.iValue, soFromBeginning);
             GetMem(pc, pifd^.iCount);
-            BlockRead(fileTiff, pc^, pifd^.iCount, iRead);
+            fileTiff.ReadBuffer(pc^, pifd^.iCount);
             tip.sImageDesc := pc;
             FreeMem(pc);
-            Seek(fileTiff, iOldPos);
+            fileTiff.Seek(iOldPos, soFromBeginning);
           end;
     282 : if pifd^.iType = 5 then begin
              tip.iXres := iReadRational(pifd^.iValue);;
@@ -1036,24 +1034,24 @@ begin
     317 : tip.iPredict := pifd^.iValue;
     320 : if pifd^.iCount > 1 then begin
             tip.fPalette := true;
-            iOldPos := FilePos(fileTiff);
-            Seek(fileTiff, pifd^.iValue);
+            iOldPos := fileTiff.Position;
+            fileTiff.Seek(pifd^.iValue, soFromBeginning);
             LoadPalette(pifd, fileTiff);
-            Seek(fileTiff, iOldPos);
+            fileTiff.Seek(iOldPos, soFromBeginning);
           end;
 { Geo-Tiff keys: }
     34735 : tip.fGeoTiff := true;
     33550 : begin        // ModelPixelScaleTag
-              iOldPos := FilePos(fileTiff);
-              Seek(fileTiff, pifd^.iValue);
+              iOldPos := fileTiff.Position;
+              fileTiff.Seek(pifd^.iValue, soFromBeginning);
               tgp.t3Scale.X := rReadDouble;
               tgp.t3Scale.Y := rReadDouble;
               tgp.t3Scale.Z := rReadDouble;
-              Seek(fileTiff, iOldPos);
+              fileTiff.Seek(iOldPos, soFromBeginning);
             end;
     33922 : begin        // ModelTiepointTag
-              iOldPos := FilePos(fileTiff);
-              Seek(fileTiff, pifd^.iValue);
+              iOldPos := fileTiff.Position;
+              fileTiff.Seek(pifd^.iValue, soFromBeginning);
               tgp.iNrTiePts := pifd^.iCount div 6;
               if tgp.iNrTiePts > 0 then begin
                 GetMem(tgp.ptieTiePoints, tgp.iNrTiePts * sizeof(TTiepoint));
@@ -1067,24 +1065,24 @@ begin
                     t3World.Z := rReadDouble;
                   end;
               end;
-              Seek(fileTiff, iOldPos);
+              fileTiff.Seek(iOldPos, soFromBeginning);
             end;
     34264 : begin          // ModelTransformationTag
-              iOldPos := FilePos(fileTiff);
-              Seek(fileTiff, pifd^.iValue);
+            iOldPos := fileTiff.Position;
+              fileTiff.Seek(pifd^.iValue, soFromBeginning);
               tgp.fMatrix := true;
               for i := 0 to 15 do
                 tgp.matTransform[i] := rReadDouble;
-              Seek(fileTiff, iOldPos);
+              fileTiff.Seek(iOldPos, soFromBeginning);
             end;
     34736 : begin
-              iOldPos := FilePos(fileTiff);
-              Seek(fileTiff, pifd^.iValue);
+              iOldPos := fileTiff.Position;
+              fileTiff.Seek(pifd^.iValue, soFromBeginning);
               tgp.iNrDblParams := pifd^.iCount;
               GetMem(tgp.ptmDblParam, pifd^.iCount * sizeOf(TMetaTag));
               for i := 0 to tgp.inrdblParams - 1 do
                 tgp.ptmDblParam^[i].rVal := rReadDouble;
-              Seek(fileTiff, iOldPos);
+              fileTiff.Seek(iOldPos, soFromBeginning);
             end;
     // GDAL tags
     42112 : begin  // GDAL_Metadata
