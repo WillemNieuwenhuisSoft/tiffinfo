@@ -942,6 +942,8 @@ end;
 procedure TTiffInfo.SetProperty(pifd : PIFDEntry; var fileTiff : TFileStream);
 var iOldPos : uint64;
     i, iPos, iPlaneColors, iRead : integer;
+    sz : integer;
+    num : uint64;
     s : string;
     pc, pcLoop, pcLoop2 : PAnsiChar;
     tostr : uint64;
@@ -992,18 +994,30 @@ begin
     256 : tip.iWidth := pifd^.iValue;
     257 : tip.iHeight := pifd^.iValue;
     258 : if pifd^.iCount > 1 then begin
-            iOldPos := fileTiff.Position;
-            fileTiff.Seek(pifd^.iValue, soFromBeginning);
             tip.iNrColors := 1;
-            iPlaneColors := 0;
             tip.iNrBits := 0;
-            for i := 1 to pifd^.iCount do begin
-              fileTiff.ReadBuffer(iPlaneColors, convert.iSizeOfType(pifd^.iType));
-              iPlaneColors := convert.wSwap(iPlaneColors);
-              tip.iNrBits := tip.iNrBits + iPlaneColors;
-              tip.iNrColors := tip.iNrColors * (1 shl iPlaneColors);
+            sz := convert.iSizeOfType(pifd^.iType);     // bytes used in value
+            if pifd^.iCount * sz > max_size then begin
+                iOldPos := fileTiff.Position;
+                fileTiff.Seek(pifd^.iValue, soFromBeginning);
+                iPlaneColors := 0;
+                for i := 1 to pifd^.iCount do begin
+                  fileTiff.ReadBuffer(iPlaneColors, convert.iSizeOfType(pifd^.iType));
+                  iPlaneColors := convert.wSwap(iPlaneColors);
+                  tip.iNrBits := tip.iNrBits + iPlaneColors;
+                  tip.iNrColors := tip.iNrColors * (1 shl iPlaneColors);
+                end;
+                fileTiff.Seek(iOldPos, soFromBeginning);
+            end
+            else begin
+                num := pifd^.iValue;
+                for i := 1 to pifd^.iCount do begin
+                    iPlaneColors := num and $ff;
+                    tip.iNrBits := tip.iNrBits + iPlaneColors;
+                    tip.iNrColors := tip.iNrColors * (1 shl iPlaneColors);
+                    num := num shr (sz * 8);
+                end;
             end;
-            fileTiff.Seek(iOldPos, soFromBeginning);
           end
           else
             tip.iNrColors := 1 shl pifd^.iValue;
