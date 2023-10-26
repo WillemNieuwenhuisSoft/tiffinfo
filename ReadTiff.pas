@@ -950,18 +950,29 @@ var iOldPos : uint64;
     max_size : integer;
 
   function iReadRational(iPos : uint64) : uint64;   // return truncated value
-  var iCurPos, iNom, iDenom : uint64;
+  var iCurPos : uint64;
+      iNom, iDenom : int32;
   begin
-    iCurPos := fileTiff.Position;
-    fileTiff.Seek(iPos, soFromBeginning);
-    fileTiff.ReadBuffer(iNom, SizeOf(longint));
-    fileTiff.ReadBuffer(iDeNom, SizeOf(longint));
-    fileTiff.Seek(iCurPos, soFromBeginning);
+    if not tip.fIsBigTiff then begin
+        iCurPos := fileTiff.Position;
+        fileTiff.Seek(iPos, soFromBeginning);
+        fileTiff.ReadBuffer(iNom, SizeOf(int32));
+        fileTiff.ReadBuffer(iDeNom, SizeOf(int32));
+        fileTiff.Seek(iCurPos, soFromBeginning);
+        iNom := convert.wSwap(iNom);
+        iDenom := convert.wSwap(iDenom);
+    end
+    else begin
+        iCurPos := convert.ibigSwap(iPos);
+        iNom := iCurPos and $ffff;
+        iDenom := iCurPos shr 32;
+    end;
     if iDenom <> 0 then
       Result := iNom div iDenom
     else
       Result := 0;
   end;
+
   function rReadDouble : double;
   var r : double;
   begin
