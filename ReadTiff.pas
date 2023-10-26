@@ -1014,7 +1014,7 @@ begin
                 for i := 1 to pifd^.iCount do begin
                     iPlaneColors := num and $ff;
                     tip.iNrBits := tip.iNrBits + iPlaneColors;
-                    tip.iNrColors := tip.iNrColors * (1 shl iPlaneColors);
+                    tip.iNrColors := (1 shl iPlaneColors);      // colors per plane
                     num := num shr (sz * 8);
                 end;
             end;
