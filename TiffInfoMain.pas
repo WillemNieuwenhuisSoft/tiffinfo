@@ -150,6 +150,12 @@ begin
   
   L_TiffName.Caption := ttInfo.sTiffName;
   LV_TiffInfo.Items.Clear;
+  if ttInfo.iNumberIFD = 0 then begin
+      litem := LV_TiffInfo.Items.Add;
+      litem.Caption := '<Corrupt IFD>';
+      exit;
+  end;
+
   for i := 0 to ttInfo.iNumberIFD - 1 do
     with LV_TiffInfo do begin
       litem := Items.Add;

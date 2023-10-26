@@ -866,6 +866,12 @@ begin
     fileTiff.Seek(ifd_offset, soFromBeginning);
     fileTiff.ReadBuffer(iNrEntries, sizeof(uint64));
     iNrEntries := convert.ibigSwap(iNrEntries);
+    if ifd_offset + iNrEntries * 20 > fileTiff.Size then begin
+        result := 0;
+        iNrEntries := 0;
+        exit;
+    end;
+
     for i := 1 to iNrEntries do begin
       new(pifd);
       fileTiff.ReadBuffer(pifd^, sizeof(TIFDEntry));
@@ -890,6 +896,12 @@ begin
     fileTiff.Seek(ifd_offset, soFromBeginning);
     fileTiff.ReadBuffer(iNrEntries, sizeof(word));
     iNrEntries := convert.wSwap(iNrEntries);
+    if ifd_offset + iNrEntries * 12 > fileTiff.Size then begin
+        iNrEntries := 0;
+        result := 0;
+        exit;
+    end;
+
     for i := 1 to iNrEntries do begin
       fileTiff.ReadBuffer(ifdSmall, sizeof(TSmallIFDEntry));
       if ifdSmall.iTag = 0 then begin
