@@ -1263,6 +1263,8 @@ begin
     42113 : sTag := 'GDAL_NoData';
 { JPEG specific tags }
     347 : sTag := 'JPEGTables';
+{ Deprecated JPEG tags }
+    513 : sTag := 'JPEGInterchangeFormat (deprecated)';
 { Pagemaker tags }
     343 : sTag := 'ClipPath';
     344 : sTag := 'XClipPathUnits';
