@@ -643,9 +643,10 @@ end;
 
 procedure TformTiffInfo.LV_TiffInfoDblClick(Sender: TObject);
 var li : TListItem;
-    addr : int64;
+    addr_val : int64;
     length : int64;
     reader : TFileStream;
+    pc : PAnsiChar;
 begin
     // popup window for text fields
     if LV_TiffInfo.SelCount > 0 then with F_Detail do begin
@@ -655,15 +656,23 @@ begin
             M_Detail.Lines.Add('Reading...');
             Visible := true;
             E_DetailTag.Text := li.Caption;
-            addr := StrToInt64(li.SubItems[3]);
+            addr_val := StrToInt64(li.SubItems[3]);
             length := StrToInt64(li.SubItems[2]);
-            reader := TFileStream.Create(ttInfo.sTiffName, fmOpenRead);
-            try
-                reader.Seek(addr, soFromBeginning);
-                M_Detail.Lines.LoadFromStream(reader);      // TMemo is slow for (very) large texts; about 11s for 47MB)
-                                                            // threading won't help: memo itself is too slow.
-            finally
-                reader.Free;
+            if length > 4 then begin     // TODO: handle bigtiff
+                reader := TFileStream.Create(ttInfo.sTiffName, fmOpenRead);
+                try
+                    reader.Seek(addr_val, soFromBeginning);
+                    M_Detail.Lines.LoadFromStream(reader);      // TMemo is slow for (very) large texts; about 11s for 47MB)
+                                                                // threading won't help: memo itself is too slow.
+                finally
+                    reader.Free;
+                end;
+            end
+            else begin
+              pc := addr(addr_val);
+              pc[length - 1] := #0;
+              M_Detail.Lines.Clear;
+              M_Detail.Lines.Add(StrPas(pc));
             end;
         end;
     end;
