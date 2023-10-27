@@ -668,7 +668,7 @@ begin
                     reader.Free;
                 end;
             end
-            else begin
+            else begin  // TODO: handle high-endian
               pc := addr(addr_val);
               pc[length - 1] := #0;
               M_Detail.Lines.Clear;

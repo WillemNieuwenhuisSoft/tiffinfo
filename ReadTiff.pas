@@ -1245,6 +1245,7 @@ begin
     340 : sTag := 'SMinSampleValue';
     341 : sTag := 'SMaxSampleValue';
     342 : sTag := 'TransferRange';
+    530 : sTag := 'YCbCrSubSampling';
     532 : sTag := 'ReferenceBlackWhite';
     33432 : sTag := 'Copyright';
 { Geo-Tiff tags }
@@ -1283,6 +1284,8 @@ begin
 { EXIF }
     34665 : sTag := 'Exif IFD';
     34675 : sTag := 'ICC Profile';
+{ GPS }
+    34853 : sTag := 'GPS IFD';
 { Diverse }
     34732  : sTag := 'ImageLayer';
   else
