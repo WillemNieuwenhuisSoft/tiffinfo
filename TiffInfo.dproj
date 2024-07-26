@@ -154,8 +154,8 @@
         </DCCReference>
         <DCCReference Include="Details.pas">
             <Form>F_Detail</Form>
-            <FormType>dfm</FormType>
         </DCCReference>
+        <DCCReference Include="hexviewer.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -190,6 +190,12 @@
             </Platforms>
             <Deployment Version="4">
                 <DeployFile LocalName="TiffInfo.exe" Configuration="Debug" Class="ProjectOutput"/>
+                <DeployFile LocalName="TiffInfo.exe" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Win64">
+                        <RemoteName>TiffInfo.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployClass Name="AdditionalDebugSymbols">
                     <Platform Name="iOSSimulator">
                         <Operation>1</Operation>

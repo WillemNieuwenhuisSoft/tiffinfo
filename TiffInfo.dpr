@@ -7,7 +7,8 @@ uses
   TiffAbout in 'TiffAbout.pas' {AboutBox},
   GeoDetail in 'GeoDetail.pas' {F_GeoTiffKeyDetail},
   Options in 'Options.pas' {F_Options},
-  Details in 'Details.pas' {F_Detail};
+  Details in 'Details.pas' {F_Detail},
+  hexviewer in 'hexviewer.pas';
 
 {$R *.RES}
 
