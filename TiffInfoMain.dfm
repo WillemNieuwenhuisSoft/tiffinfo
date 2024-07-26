@@ -45,6 +45,8 @@ object formTiffInfo: TformTiffInfo
     ActivePage = TS_TiffIFD
     Align = alClient
     TabOrder = 0
+    ExplicitWidth = 786
+    ExplicitHeight = 612
     object TS_TiffIFD: TTabSheet
       Caption = 'IFD Details'
       object LV_TiffInfo: TListView
@@ -101,7 +103,6 @@ object formTiffInfo: TformTiffInfo
         Align = alClient
         DragMode = dmAutomatic
         TabOrder = 0
-        ExplicitHeight = 588
       end
     end
     object TS_Palette: TTabSheet
@@ -119,7 +120,6 @@ object formTiffInfo: TformTiffInfo
         ScrollBars = ssNone
         TabOrder = 0
         OnDrawCell = DG_PaletteDrawCell
-        ExplicitHeight = 588
       end
     end
     object TS_GeoTiff: TTabSheet
@@ -141,7 +141,6 @@ object formTiffInfo: TformTiffInfo
         Height = 148
         Align = alBottom
         TabOrder = 0
-        ExplicitTop = 440
       end
       object LV_GeoTiff: TListView
         Left = 0
@@ -177,7 +176,6 @@ object formTiffInfo: TformTiffInfo
         TabOrder = 1
         ViewStyle = vsReport
         OnDblClick = LV_GeoTiffDblClick
-        ExplicitHeight = 437
       end
     end
     object TS_GeoTiffSummary: TTabSheet
@@ -196,7 +194,6 @@ object formTiffInfo: TformTiffInfo
         ParentFont = False
         ScrollBars = ssVertical
         TabOrder = 0
-        ExplicitHeight = 588
       end
     end
   end
@@ -216,8 +213,6 @@ object formTiffInfo: TformTiffInfo
     TabOrder = 1
     OnClick = LB_TiffFilesClick
     OnMouseDown = LB_TiffFilesMouseDown
-    ExplicitTop = 13
-    ExplicitHeight = 615
   end
   object mmTiffInfo: TMainMenu
     Images = ImageList1

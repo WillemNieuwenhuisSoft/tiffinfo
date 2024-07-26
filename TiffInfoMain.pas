@@ -90,7 +90,7 @@ implementation
 uses
     XMLIntf,
     XMLDoc,
-    Printers, ReadTiff, TiffAbout, GeoDetail, Options, Details, Math;
+    Printers, ReadTiff, TiffAbout, GeoDetail, Options, Details, Math, hexviewer;
 
 var
     buffer : PAnsiChar;
@@ -647,6 +647,8 @@ var li : TListItem;
     length : int64;
     reader : TFileStream;
     pc : PAnsiChar;
+    tempstring:string;
+    bytes : TBytes;
 begin
     // popup window for text fields
     if LV_TiffInfo.SelCount > 0 then with F_Detail do begin
@@ -674,6 +676,16 @@ begin
               M_Detail.Lines.Clear;
               M_Detail.Lines.Add(StrPas(pc));
             end;
+        end
+        else begin
+            addr_val := StrToInt64(li.SubItems[3]);
+            length := StrToInt64(li.SubItems[2]);
+            setlength(bytes, length);
+            move(addr_val, bytes, length);
+//            tempstring := 'test: IFD: GDAL_NODATA interpreted as pointer instead of string; in ''Image Details'' is OK';
+//            bytes := TEncoding.UTF8.GetBytes(tempstring);
+            M_Detail.Text := hexconvert.BytesToHex(bytes);
+            Visible := true;
         end;
     end;
 end;
