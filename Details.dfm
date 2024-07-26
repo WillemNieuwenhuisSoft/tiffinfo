@@ -26,8 +26,14 @@ object F_Detail: TF_Detail
       Width = 887
       Height = 540
       Align = alClient
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Courier New'
+      Font.Style = []
       Lines.Strings = (
         '')
+      ParentFont = False
       ScrollBars = ssVertical
       TabOrder = 0
       ExplicitWidth = 883
@@ -57,13 +63,14 @@ object F_Detail: TF_Detail
     object E_DetailTag: TEdit
       Left = 70
       Top = 8
-      Width = 195
+      Width = 191
       Height = 24
       Anchors = [akLeft, akTop, akRight]
       Color = clInfoBk
       ReadOnly = True
       TabOrder = 0
       Text = 'E_DetailTag'
+      ExplicitWidth = 187
     end
   end
   object P_Button: TPanel
@@ -81,7 +88,7 @@ object F_Detail: TF_Detail
       889
       41)
     object BB_DetailClose: TBitBtn
-      Left = 781
+      Left = 777
       Top = 9
       Width = 75
       Height = 25
@@ -90,7 +97,7 @@ object F_Detail: TF_Detail
       NumGlyphs = 2
       Spacing = -1
       TabOrder = 0
-      ExplicitLeft = 777
+      ExplicitLeft = 773
     end
   end
 end
