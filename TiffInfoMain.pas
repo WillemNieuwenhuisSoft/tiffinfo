@@ -645,10 +645,7 @@ procedure TformTiffInfo.LV_TiffInfoDblClick(Sender: TObject);
 var li : TListItem;
     addr_val : int64;
     length : int64;
-    reader : TFileStream;
-    pc : PAnsiChar;
-    tempstring:string;
-    bytes : TBytes;
+    bytes : TDoubleArray;
 begin
     // popup window for text fields
     if LV_TiffInfo.SelCount > 0 then with F_Detail do begin
@@ -660,31 +657,13 @@ begin
             E_DetailTag.Text := li.Caption;
             addr_val := StrToInt64(li.SubItems[3]);
             length := StrToInt64(li.SubItems[2]);
-            if length > 4 then begin     // TODO: handle bigtiff
-                reader := TFileStream.Create(ttInfo.sTiffName, fmOpenRead);
-                try
-                    reader.Seek(addr_val, soFromBeginning);
-                    M_Detail.Lines.LoadFromStream(reader);      // TMemo is slow for (very) large texts; about 11s for 47MB)
-                                                                // threading won't help: memo itself is too slow.
-                finally
-                    reader.Free;
-                end;
-            end
-            else begin  // TODO: handle high-endian
-              pc := addr(addr_val);
-              pc[length - 1] := #0;
-              M_Detail.Lines.Clear;
-              M_Detail.Lines.Add(StrPas(pc));
-            end;
+            M_Detail.Lines.Text := ttinfo.readText(addr_val, length);
         end
-        else begin
+        else if li.SubItems[1] = 'Double (8 bytes IEEE)' then begin
             addr_val := StrToInt64(li.SubItems[3]);
             length := StrToInt64(li.SubItems[2]);
-            setlength(bytes, length);
-            move(addr_val, bytes, length);
-//            tempstring := 'test: IFD: GDAL_NODATA interpreted as pointer instead of string; in ''Image Details'' is OK';
-//            bytes := TEncoding.UTF8.GetBytes(tempstring);
-            M_Detail.Text := hexconvert.BytesToHex(bytes);
+            bytes := ttinfo.readDoubles(addr_val, length);
+            M_Detail.Text := hexconvert.DoublesToHex(bytes);
             Visible := true;
         end;
     end;

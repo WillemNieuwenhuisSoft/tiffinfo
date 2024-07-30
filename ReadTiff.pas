@@ -127,6 +127,8 @@ type
     procedure Clear;
   end;
 
+  TDoubleArray = array of double;
+
   TConvert = class
   public
     isTiffLittle : boolean;
@@ -189,6 +191,9 @@ type
     procedure GetGeoTiffVersion(var gh : TGeoHeader);
     function sDescript(iTag, iVal : integer) : string;
     property fMultiImage : boolean read fMulti;
+    // access array values
+    function readDoubles(addr_val : integer; count : integer) : TDoubleArray;
+    function readText(addr_val : integer; count : integer) : String;
   private
     function GetIFD(var fileTiff : TFileStream; ifd_offset : uint64) : uint64;
     procedure SetProperty(pifd : PIFDEntry; var fileTiff : TFileStream);
@@ -949,6 +954,58 @@ begin
   finally
     FreeMem(buf);
   end;
+end;
+
+function TTiffInfo.readText(addr_val, count: integer): String;
+var
+    reader : TFileStream;
+    text : TStringList;
+    pc : PAnsiChar;
+begin
+    if count > 4 then begin     // TODO: handle bigtiff
+        reader := TFileStream.Create(ttInfo.sTiffName, fmOpenRead);
+        text := TStringList.Create;
+        try
+            reader.Seek(addr_val, soFromBeginning);
+            text.LoadFromStream(reader);
+            result := text.text;
+        finally
+            reader.Free;
+            text.Free;
+        end;
+    end
+    else begin  // TODO: handle high-endian
+      pc := addr(addr_val);
+      pc[count - 1] := #0;
+      result := StrPas(pc)
+    end;
+end;
+
+function TTiffInfo.readDoubles(addr_val : integer; count: integer): TDoubleArray;
+var
+    doubles : TDoubleArray;
+    i : integer;
+    reader : TFileStream;
+    buffer : double;
+begin
+    if count <= 0 then begin
+        result := nil;
+        exit;
+    end;
+    reader := TFileStream.Create(sTiffName, fmOpenRead);
+    SetLength(doubles, count);
+    try
+        reader.Seek(addr_val, soFromBeginning);
+        for I := 0 to count - 1 do begin
+            reader.Read(buffer, 8);
+            doubles[i] := convert.rswap(buffer);
+        end;
+
+    finally
+        reader.Free;
+    end;
+
+    result := doubles;
 end;
 
 procedure TTiffInfo.SetProperty(pifd : PIFDEntry; var fileTiff : TFileStream);
