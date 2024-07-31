@@ -8,7 +8,7 @@ uses
   GeoDetail in 'GeoDetail.pas' {F_GeoTiffKeyDetail},
   Options in 'Options.pas' {F_Options},
   Details in 'Details.pas' {F_Detail},
-  hexviewer in 'hexviewer.pas';
+  HexConverter in 'HexConverter.pas';
 
 {$R *.RES}
 

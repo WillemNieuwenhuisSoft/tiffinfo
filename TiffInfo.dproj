@@ -155,7 +155,7 @@
         <DCCReference Include="Details.pas">
             <Form>F_Detail</Form>
         </DCCReference>
-        <DCCReference Include="hexviewer.pas"/>
+        <DCCReference Include="HexConverter.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

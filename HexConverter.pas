@@ -1,4 +1,4 @@
-unit hexviewer;
+unit HexConverter;
 
 interface
 
