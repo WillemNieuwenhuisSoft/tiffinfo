@@ -958,26 +958,42 @@ end;
 
 function TTiffInfo.readText(addr_val, count: integer): String;
 var
-    reader : TFileStream;
-    text : TStringList;
-    pc : PAnsiChar;
+    reader: TFileStream;
+    // text : TStringList;
+    pc: PAnsiChar;
+    file_size, to_read, last_pos: integer;
 begin
-    if count > 4 then begin     // TODO: handle bigtiff
+    if count > 4 then
+    begin // TODO: handle bigtiff
         reader := TFileStream.Create(ttInfo.sTiffName, fmOpenRead);
-        text := TStringList.Create;
         try
             reader.Seek(addr_val, soFromBeginning);
-            text.LoadFromStream(reader);
-            result := text.text;
+            file_size := reader.Size;
+            to_read := count;
+            if to_read > 32000 then    // prevent too long texts
+                to_read := 32000;
+            last_pos := addr_val + to_read;
+            if last_pos > file_size then
+            begin
+                to_read := file_size - addr_val - 1; // # bytes to read
+                Result := ''; // probably corrupt tif file anyway
+                exit;
+            end;
+
+            GetMem(pc, to_read);
+            reader.ReadBuffer(pc^, to_read);
+            pc[to_read - 1] := #0;
+            Result := StrPas(pc);
+            FreeMem(pc);
         finally
             reader.Free;
-            text.Free;
         end;
     end
-    else begin  // TODO: handle high-endian
-      pc := addr(addr_val);
-      pc[count - 1] := #0;
-      result := StrPas(pc)
+    else
+    begin // TODO: handle high-endian
+        pc := addr(addr_val);
+        pc[count - 1] := #0;
+        Result := StrPas(pc)
     end;
 end;
 
@@ -1048,14 +1064,26 @@ var iOldPos : uint64;
     fileTiff.ReadBuffer(r, sizeof(double));
     Result := convert.rSwap(r);
   end;
+
   function getString(pifd : PIFDEntry; offset : uint64) : string;
+  var
+    file_size, last_pos, to_read : integer;
   begin
     if pifd^.iCount > max_size then begin
+      to_read := pifd^.iCount;
+      file_size := fileTiff.Size;
+      last_pos := pifd^.iValue + to_read;
+      if last_pos > file_size then begin
+        to_read := file_size - pifd^.iValue - 1;  // # bytes to read
+        result := '';        // probably corrupt tif file anyway
+        exit;
+      end;
+
       iOldPos := fileTiff.Position;
       fileTiff.Seek(pifd^.iValue, soFromBeginning);
-      GetMem(pc, pifd^.iCount);
-      fileTiff.ReadBuffer(pc^, pifd^.iCount);
-      pc[pifd^.iCount - 1] := #0;
+      GetMem(pc, to_read);
+      fileTiff.ReadBuffer(pc^, to_read);
+      pc[to_read - 1] := #0;
       Result := StrPas(pc);
       FreeMem(pc);
       fileTiff.Seek(iOldPos, soFromBeginning);
@@ -1181,32 +1209,9 @@ begin
     // GDAL tags
     42112 : begin  // GDAL_Metadata
                 tip.metadata_xml := getString(pifd, 0);
-//                oXml := TXMLDocument.Create(nil);
-//                oXml.LoadFromXML(getString(pifd, 0));
-//                oXml.XML.Text:=xmlDoc.FormatXMLData(oXml.XML.Text);
-//                oXml.Active := true;
-//                oXml.SaveToXML(tip.metadata_xml);
-//              iOldPos := FilePos(fileTiff);
-//              Seek(fileTiff, pifd^.iValue);
-//              Seek(fileTiff, iOldPos);
             end;
     42113 : begin  // GDAL_Nodata (ASCII)
               tip.nodata_val := getString(pifd, 0);
-(*              if pifd^.iCount > max_size then begin
-                iOldPos := FilePos(fileTiff);
-                Seek(fileTiff, pifd^.iValue);
-                GetMem(pc, pifd^.iCount);
-                BlockRead(fileTiff, pc^, pifd^.iCount);
-                pc[pifd^.iCount - 1] := #0;
-                tip.nodata_val := StrPas(pc);
-                FreeMem(pc);
-                Seek(fileTiff, iOldPos);
-              end else begin
-                tostr := pifd^.iValue;
-                pc := addr(tostr);
-                pc[pifd^.iCount - 1] := #0;
-                tip.nodata_val := StrPas(pc);
-              end;*)
             end;
   end;
 end;
