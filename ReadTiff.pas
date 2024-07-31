@@ -961,7 +961,7 @@ var
     reader: TFileStream;
     // text : TStringList;
     pc: PAnsiChar;
-    file_size, to_read, last_pos: integer;
+    file_size, to_read, last_pos, val: integer;
 begin
     if count > 4 then
     begin // TODO: handle bigtiff
@@ -990,8 +990,9 @@ begin
         end;
     end
     else
-    begin // TODO: handle high-endian
-        pc := addr(addr_val);
+    begin
+        val := convert.iSwap(Cardinal(addr_val));
+        pc := addr(val);
         pc[count - 1] := #0;
         Result := StrPas(pc)
     end;
@@ -1087,8 +1088,10 @@ var iOldPos : uint64;
       Result := StrPas(pc);
       FreeMem(pc);
       fileTiff.Seek(iOldPos, soFromBeginning);
-    end else begin
-      tostr := pifd^.iValue;
+        end
+        else
+        begin
+            tostr := convert.iSwap(Cardinal(pifd^.iValue));
       pc := addr(tostr);
       pc[pifd^.iCount - 1] := #0;
       Result := StrPas(pc);
