@@ -156,6 +156,9 @@
             <Form>F_Detail</Form>
         </DCCReference>
         <DCCReference Include="HexConverter.pas"/>
+        <DCCReference Include="PrintTifInfo.pas"/>
+        <DCCReference Include="CollectTiffInfo.pas"/>
+        <DCCReference Include="CollectGeotiffInfo.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

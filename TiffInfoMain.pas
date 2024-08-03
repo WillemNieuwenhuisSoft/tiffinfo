@@ -89,8 +89,8 @@ implementation
 
 uses
     XMLIntf,
-    XMLDoc,
-    Printers, ReadTiff, TiffAbout, GeoDetail, Options, Details, Math, hexviewer;
+    ReadTiff, TiffAbout, GeoDetail, Options, Details, Math, hexviewer,
+    PrintTifInfo, CollectTiffInfo, CollectGeotiffInfo;
 
 var
     buffer: PAnsiChar;
@@ -173,101 +173,10 @@ begin
             litem.SubItems.Add(Format('%d', [ttInfo.iValue(i)]));
             litem.SubItems.Add(Format('$%.8x', [ttInfo.iValue(i)]));
         end;
-    with LB_ImageDetails do
-    begin
-        Clear;
-        if ttInfo.fLittleEndian then
-            Items.Add('Tiff file stored in little endian format')
-        else
-            Items.Add('Tiff file stored in high endian format');
-        if ttInfo.fMultiImage then
-            Items.Add('Tiff file has multiple images')
-        else
-            Items.Add('Tiff file contains single image');
-        ttInfo.GetImageProperties(tip);
-        with tip do
-        begin
-            if tip.fIsBigTiff then
-                Items.Add('Big TIFF')
-            else
-                Items.Add('Normal TIFF');
-            if tip.fPalette then
-                s := 'colors'
-            else
-                s := 'values';
-            if iPhoto = 2 then
-                iNrColors := 1 shl 24;
-            if iNrColors = 0 then
-                if iComp = 2 then
-                    iNrColors := 2;
-            Items.Add(Format('Image size: %d x %d, %.0n %s',
-              [iWidth, iHeight, 1.0 * iNrColors, s]));
-            case iPhoto of
-                0:
-                    Items.Add('WhiteIsZero: Colors range from white to black');
-                1:
-                    Items.Add('BlackIsZero: Colors range from black to white');
-                2:
-                    Items.Add('RGB: Full color image (' + IntToStr(iNrBits) +
-                      ' bits per pixel)');
-                3:
-                    Items.Add('Colors are determined from a palette (LUT)');
-                4:
-                    Items.Add('Image is a bit mask');
-            end;
-            if (sResUnit = 'Inch') or (sResUnit = 'Centimeter') then
-            begin
-                if iXRes <> 0 then
-                    Items.Add(Format('X Resolution: %d / %s',
-                      [iXRes, sResUnit]));
-                if iYRes <> 0 then
-                    Items.Add(Format('Y Resolution: %d / %s',
-                      [iYRes, sResUnit]));
-            end
-            else if sResUnit <> '' then
-                Items.Add(sResUnit);
-            case iComp of
-                1:
-                    Items.Add('No compression');
-                2:
-                    Items.Add(
-                      'CCITT Group 3 1-dimensional modified HuffMan runlength encoding');
-                3:
-                    Items.Add('CCITT T.4 bi-level encoding');
-                4:
-                    Items.Add('CCITT T.6 bi-level encoding');
-                5:
-                    begin
-                        s := 'LZW compression';
-                        if iPredict = 1 then
-                            s := s + ' (No prediction scheme)'
-                        else if iPredict = 2 then
-                            s := s + ' (Horizontal differencing)';
-                        Items.Add(s)
-                    end;
-                6:
-                    Items.Add('JPEG compression');
-                32773:
-                    Items.Add('Packbits compression');
-            else
-                Items.Add('No TIFF 6.0 compression scheme');
-            end;
-            if sImageDesc <> '' then
-                Items.Add('Image Description: ''' + sImageDesc + '''');
-            if nodata_val <> '' then
-                Items.Add('GDAL nodata value: ' + nodata_val);
-            if metadata_xml <> '' then
-            begin
-                oXml := TXMLDocument.Create(nil);
-                oXml.LoadFromXML(metadata_xml);
-                oXml.XML.Text := XMLDoc.FormatXMLData(oXml.XML.Text);
-                oXml.Active := true;
 
-                // Items.Add('GDAL metadata: ');
-                Items.AddStrings(oXml.XML);
-            end;
-        end;
-    end;
+    LB_ImageDetails.Items := collectedTiffInfo.infoAsStrings;
+
+    ttInfo.GetImageProperties(tip);
     if tip.fPalette then
     begin
         DG_Palette.OnDrawCell := DG_PaletteDrawCell;
@@ -305,45 +214,7 @@ begin
                 litem.SubItems.Add(ttInfo.sDescript(iTag, ttInfo.iGeoValue(i)));
             end;
         end;
-        with LB_GeoTiff do
-        begin
-            Items.Clear;
-            ttInfo.GetGeoTiffVersion(ghRevis);
-            Items.Add(Format('GeoTiff GeoKey directory version %d',
-              [ghRevis.iVersion]));
-            Items.Add(Format('GeoTiff keys revision %d.%d', [ghRevis.iRevision,
-              ghRevis.iMinor]));
-            ttInfo.GetGeoTiffProperties(tgp);
-            if abs(tgp.t3Scale.X) > 0.001 then
-            begin
-                with tgp.t3Scale do
-                    s := Format('(%.8f, %.8f, %.8f)', [X, Y, Z]);
-                Items.Add('Model Pixel Scaling factor (X, Y, Z): ' + s);
-            end;
-            if tgp.ptieTiePoints <> nil then
-            begin
-                Items.Add('Tiepoint table: ');
-                for i := 0 to tgp.inrTiePts - 1 do
-                    with tgp.ptieTiePoints^[i] do
-                    begin
-                        Items.Add(Format
-                          ('%10s(%.2f, %.2f, %.2f) -> (%.8f, %.8f, %.8f)',
-                          ['', t3Pixel.X, t3Pixel.Y, t3Pixel.Z, t3World.X,
-                          t3World.Y, t3World.Z]));
-                    end;
-            end;
-            if tgp.fMatrix then
-            begin
-                Items.Add('Transformation matrix (4 x 4):');
-                for i := 0 to 3 do
-                begin
-                    Items.Add(Format('%10s %10.2f  %10.2f  %10.2f  %10.2f',
-                      ['', tgp.matTransform[i * 4], tgp.matTransform[i * 4 + 1],
-                      tgp.matTransform[i * 4 + 2],
-                      tgp.matTransform[i * 4 + 3]]));
-                end;
-            end;
-        end;
+        LB_GeoTiff.Items := collectedGeotiffInfo.infoAsStrings;
     end;
     if ((PC_TiffInfo.ActivePage = TS_Palette) and not TS_Palette.TabVisible) or
       ((PC_TiffInfo.ActivePage = TS_GeoTiff) and not TS_GeoTiff.TabVisible) then
@@ -374,162 +245,44 @@ end;
 
 procedure TformTiffInfo.Print1Click(Sender: TObject);
 var
-    i, j, iLineHeight: integer;
-    iLeftMargin, iXOffset, iXDPI, iLeftIFD, // information will be indented 1 cm
-    iScreenDPI, iCurVert, iCurHorz: integer;
-    rectClip: TRect;
+    screenDPI: integer;
+    i, width: integer;
+    name: string;
+    widths: array of integer;
+    names: TStringList;
+    geotiffwidths: array of integer;
+    geotiffnames: TStringList;
 begin
     if ttInfo.sTiffName = '' then
         exit;
     if not PD_Tiff.Execute then
         exit;
-    Printer.BeginDoc;
-    with Printer.Canvas do
+
+    screenDPI := GetDeviceCaps(formTiffInfo.Canvas.Handle, LOGPIXELSY);
+
+    names := TStringList.Create;
+    setLength(widths, LV_TiffInfo.Columns.Count);
+    for i := 0 to LV_TiffInfo.Columns.Count - 1 do
     begin
-        rectClip := ClipRect;
-        Font.Style := [];
-        Font.Size := 10;
-        Font.Name := 'Times New Roman';
-        iXOffset := GetDeviceCaps(Handle, PHYSICALOFFSETX);
-        iXDPI := Font.PixelsPerInch;
-        iScreenDPI := GetDeviceCaps(formTiffInfo.Canvas.Handle, LOGPIXELSY);
-        iLeftMargin := MulDiv(iXDPI, 100, 254) - iXOffset; // left margin = 1 cm
-        iLeftIFD := MulDiv(iXDPI, 200, 254) - iXOffset;
-        iCurVert := 0;
-        { print Header }
-        TextOut(rectClip.Left, 0, FormatDateTime('ddd, d mmm yyyy, t', Now));
-        TextOut(rectClip.Right - TextWidth(ttInfo.sTiffName) - 10, 0,
-          ttInfo.sTiffName);
-
-        { print IFD header line }
-        Font.Size := 15;
-        Font.Style := [fsBold];
-        Font.Name := 'Times New Roman';
-        iLineHeight := MulDiv(TextHeight('Hj'), 5, 4); // line spacing = 20%
-        iCurVert := iCurVert + iLineHeight;
-        TextOut(iLeftMargin, iCurVert, 'IFD summary');
-        iCurVert := iCurVert + iLineHeight;
-
-        Font.Size := 12;
-        Font.Style := [];
-        Font.Name := 'Arial';
-        iLineHeight := MulDiv(TextHeight('Hj'), 5, 4); // line spacing = 20%
-        { print IFD overview }
-        iCurHorz := iLeftIFD;
-        with LV_TiffInfo.Columns do
-            for i := 0 to Count - 1 do
-            begin
-                TextOut(iCurHorz, iCurVert, Items[i].Caption);
-                iCurHorz := iCurHorz + MulDiv(Items[i].Width, iXDPI,
-                  iScreenDPI);
-            end;
-        iCurVert := iCurVert + iLineHeight;
-        Font.Size := formTiffInfo.Canvas.Font.Size;
-        iLineHeight := MulDiv(TextHeight('Hj'), 4, 3); // line spacing = 33%
-        for i := 0 to ttInfo.iNumberIFD - 1 do
-        begin
-            iCurHorz := iLeftIFD;
-            with LV_TiffInfo.Items[i] do
-            begin
-                TextOut(iCurHorz, iCurVert, Caption);
-                iCurHorz := iCurHorz + MulDiv(LV_TiffInfo.Columns[0].Width,
-                  iXDPI, iScreenDPI);
-                for j := 0 to SubItems.Count - 1 do
-                begin
-                    TextOut(iCurHorz, iCurVert, SubItems[j]);
-                    iCurHorz := iCurHorz +
-                      MulDiv(LV_TiffInfo.Columns[j + 1].Width, iXDPI,
-                      iScreenDPI);
-                end;
-                iCurVert := iCurVert + iLineHeight;
-            end;
-        end;
-
-        Font.Size := 15;
-        Font.Style := [fsBold];
-        Font.Name := 'Times New Roman';
-        iLineHeight := MulDiv(TextHeight('Hj'), 5, 4); // line spacing = 20%
-        iCurVert := iCurVert + iLineHeight;
-        TextOut(iLeftMargin, iCurVert, 'Image info');
-        iCurVert := iCurVert + iLineHeight;
-        { Print Image Info }
-        Font.Size := formTiffInfo.Canvas.Font.Size;
-        Font.Style := [];
-        Font.Name := 'Arial';
-        iLineHeight := MulDiv(TextHeight('Hj'), 4, 3); // line spacing = 33%
-        with LB_ImageDetails do
-            for i := 0 to Items.Count - 1 do
-            begin
-                TextOut(iLeftIFD, iCurVert, Items.Strings[i]);
-                iCurVert := iCurVert + iLineHeight;
-            end;
-
-        if ttInfo.fHasGeoTiff then
-        begin
-            Font.Size := 15;
-            Font.Style := [fsBold];
-            Font.Name := 'Times New Roman';
-            iLineHeight := MulDiv(TextHeight('Hj'), 5, 4); // line spacing = 20%
-            iCurVert := iCurVert + iLineHeight;
-            TextOut(iLeftMargin, iCurVert, 'GeoTiff Tag summary');
-            iCurVert := iCurVert + iLineHeight;
-
-            Font.Size := 12;
-            Font.Style := [];
-            Font.Name := 'Arial';
-            iLineHeight := MulDiv(TextHeight('Hj'), 5, 4); // line spacing = 20%
-            { Print GeoTiff Tag Info }
-            iCurHorz := iLeftIFD;
-            with LV_GeoTiff.Columns do
-                for i := 0 to Count - 1 do
-                begin
-                    TextOut(iCurHorz, iCurVert, Items[i].Caption);
-                    iCurHorz := iCurHorz + MulDiv(Items[i].Width, iXDPI,
-                      iScreenDPI);
-                end;
-            iCurVert := iCurVert + iLineHeight;
-            Font.Size := formTiffInfo.Canvas.Font.Size;
-            iLineHeight := MulDiv(TextHeight('Hj'), 4, 3); // line spacing = 33%
-            for i := 0 to ttInfo.iNrGeoKeys - 1 do
-            begin
-                iCurHorz := iLeftIFD;
-                with LV_GeoTiff.Items[i] do
-                begin
-                    TextOut(iCurHorz, iCurVert, Caption);
-                    iCurHorz := iCurHorz + MulDiv(LV_GeoTiff.Columns[0].Width,
-                      iXDPI, iScreenDPI);
-                    for j := 0 to SubItems.Count - 1 do
-                    begin
-                        TextOut(iCurHorz, iCurVert, SubItems[j]);
-                        iCurHorz := iCurHorz +
-                          MulDiv(LV_GeoTiff.Columns[j + 1].Width, iXDPI,
-                          iScreenDPI);
-                    end;
-                    iCurVert := iCurVert + iLineHeight;
-                end;
-            end;
-
-            Font.Size := 15;
-            Font.Style := [fsBold];
-            Font.Name := 'Times New Roman';
-            iLineHeight := MulDiv(TextHeight('Hj'), 5, 4); // line spacing = 20%
-            iCurVert := iCurVert + iLineHeight;
-            TextOut(iLeftMargin, iCurVert, 'GeoTiff details');
-            iCurVert := iCurVert + iLineHeight;
-            { Print GeoTiff summary info }
-            Font.Size := formTiffInfo.Canvas.Font.Size;
-            Font.Style := [];
-            Font.Name := 'Arial';
-            iLineHeight := MulDiv(TextHeight('Hj'), 4, 3); // line spacing = 33%
-            with LB_GeoTiff do
-                for i := 0 to Items.Count - 1 do
-                begin
-                    TextOut(iLeftIFD, iCurVert, Items.Strings[i]);
-                    iCurVert := iCurVert + iLineHeight;
-                end;
-        end;
+        names.Add(LV_TiffInfo.Column[i].Caption);
+        widths[i] := LV_TiffInfo.Column[i].width;
     end;
-    Printer.EndDoc;
+    geotiffnames := TStringList.Create;
+    setLength(geotiffwidths, LV_GeoTiff.Columns.Count);
+    for i := 0 to LV_GeoTiff.Columns.Count - 1 do
+    begin
+        geotiffnames.Add(LV_GeoTiff.Column[i].Caption);
+        geotiffwidths[i] := LV_GeoTiff.Column[i].width;
+    end;
+
+    infoPrinter.printTiffInfo(screenDPI, formTiffInfo.Canvas.Font.Size, names,
+      widths, geotiffnames, geotiffwidths);
+
+    // cleanup
+    names.Free;
+    geotiffnames.Free;
+    widths := nil;
+    geotiffwidths := nil;
 end;
 
 procedure TformTiffInfo.About1Click(Sender: TObject);
@@ -631,7 +384,7 @@ procedure TformTiffInfo.FormResize(Sender: TObject);
 begin
     with DG_Palette do
     begin
-        DefaultColWidth := (Width - ColCount - 1) div ColCount;
+        DefaultColWidth := (width - ColCount - 1) div ColCount;
         DefaultRowHeight := (Height - RowCount - 1) div RowCount;
     end;
 end;
@@ -661,7 +414,7 @@ procedure TformTiffInfo.LB_TiffFilesClick(Sender: TObject);
 var
     lb: TListBox;
     obj: TObject;
-    Name: string;
+    name: string;
     myint: integer;
 begin
     lb := Sender as TListBox;
